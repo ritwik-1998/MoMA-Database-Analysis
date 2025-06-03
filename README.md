@@ -279,19 +279,89 @@ END;
 ### Data Analysis Queries
 
 These queries provide valuable insights into the MoMA collection.
+```sql
+SELECT * FROM Artist;
+SELECT * FROM MOMA;
+SELECT * FROM Artwork_fact;
+SELECT * FROM Mcollection;
+```
 
 * **How Modern are the Artworks?**: Analyzes the number of artworks acquired per decade to understand the collection's modernity.
+```sql
+SQL
+SELECT Decade, COUNT(AccessionNumber) AS Number_of_Artworks
+FROM Mcollection
+GROUP BY Decade
+ORDER BY Number_of_Artworks DESC;
+```
 * **Which Artists are Featured the Most?**: Identifies artists with the highest number of artworks in the collection.
+```sql
+SELECT a.DisplayName, COUNT(b.AccessionNumber) AS Number_of_Artworks
+FROM Artist a
+INNER JOIN Artwork_fact b
+ON a.ConstituentID = b.ConstituentID
+GROUP BY a.DisplayName
+ORDER BY Number_of_Artworks DESC;
+```
 * **What Types of Artworks Are the Most Common?**: Examines the distribution of artworks by classification, department, and medium.
     * Classification Wise
-    * Department Wise
-    * Medium Wise
+```sql
+SELECT Classification, COUNT(AccessionNumber) AS Number_of_Artworks
+FROM Mcollection
+GROUP BY Classification
+ORDER BY Number_of_Artworks DESC;
+```
+  * Department Wise
+```sql
+SELECT Department, COUNT(AccessionNumber) AS Number_of_Artworks
+FROM Mcollection
+GROUP BY Department
+ORDER BY Number_of_Artworks DESC;
+```
+  * Medium Wise
+```sql
+SELECT Medium, COUNT(DISTINCT(AccessionNumber)) AS Number_of_Artworks
+FROM Artwork_fact
+GROUP BY Medium
+ORDER BY Number_of_Artworks DESC;
+```
 * **Are there Any Trends in the Date of Acquisition?**: Investigates yearly and monthly acquisition trends.
     * Yearly Trends (Note: All `NULL` values in the date column were converted to `1900-01-01` during cleaning.)
-    * Monthly Trends
+```sql
+SELECT YEAR(DateAcquired) AS AcquisitionYear,
+ 	COUNT(*) AS NumberOfAcquisitions
+FROM Mcollection
+GROUP BY YEAR(DateAcquired)
+ORDER BY AcquisitionYear;
+```
+  * Monthly Trends
+```sql
+SELECT MONTH(DateAcquired) AS AcquisitionMonth,
+ 	DATENAME(month, DateAcquired) AS MonthName,
+ 	COUNT(*) AS NumberOfAcquisitions
+FROM Mcollection
+GROUP BY MONTH(DateAcquired),
+ 	DATENAME(month, DateAcquired)
+ORDER BY AcquisitionMonth;
+```
 
 ---
 
 ### Recommended Analysis: Department-wise Artwork Acquisition by Decade
 
 This query provides valuable insight into the acquisition trends of each department over multiple decades, which can help in predicting future resource requirements and strategic planning.
+```sql
+SELECT
+ 	mcollection.decade,
+ 	mcollection.department,
+ 	COUNT(mcollection.AccessionNumber) AS NumberOfArtworks
+FROM
+ 	mcollection
+GROUP BY
+ 	mcollection.decade,
+ 	mcollection.department
+ORDER BY
+ 	mcollection.decade,
+ 	mcollection.department;
+```
+
